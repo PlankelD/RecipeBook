@@ -20,6 +20,8 @@ export class ShoppingEditComponent implements OnInit {
     const ingName = this.nameInputRef.nativeElement.value;
     const ingAmount = this.amountInputRef.nativeElement.value;
     const newIngredient = new Ingredient(ingName,ingAmount);
+    // hier wird ein neues Item erzeugt, bei einem click  und an den service gegeben der es dann pusht
+
     this.slService.addIngredient(newIngredient);
 
   }

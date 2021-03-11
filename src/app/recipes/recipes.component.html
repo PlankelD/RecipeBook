@@ -8,14 +8,9 @@
     </div>
     <!-- etwas breitere Spalte Rechts -->
     <div class="col-md-7">
-      <app-recipe-detail *ngIf="selectedRecipe; else infoText"
-      [recipe]="selectedRecipe">
-
-      </app-recipe-detail>
-      <ng-template #infoText>
-        <p>Please select a Recipe!</p>
-      </ng-template>
+      <router-outlet></router-outlet>
     </div>
   </div>
 
+  <!-- so it is in this component template that we need to provide a router outlet for the child routes to be renderd -->
 
