@@ -9,7 +9,7 @@ import { ActivatedRoute, Params } from '@angular/router';
 export class RecipeEditComponent implements OnInit {
 
   id:number;
-  // i also wnat to find out whether i'm editing the recipe or creating a new one
+  // i also want to find out whether i'm editing the recipe or creating a new one
   // initially i could say i assume that i am creating a new recipe and i am not in editMode
   editMode = false;
 
