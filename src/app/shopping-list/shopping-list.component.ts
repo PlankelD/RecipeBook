@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { Ingredient } from '../shared/ingredient.model';
 import { ShoppingListService } from './shopping-list.service';
 
@@ -7,20 +8,23 @@ import { ShoppingListService } from './shopping-list.service';
   templateUrl: './shopping-list.component.html',
   styleUrls: ['./shopping-list.component.css']
 })
-export class ShoppingListComponent implements OnInit {
+export class ShoppingListComponent implements OnInit, OnDestroy {
   ingredients: Ingredient[];
   constructor(private slService: ShoppingListService) { }
+  private igChanceSub: Subscription;
 
-  //1) Zeile: bekommt die die Liste an Ingredients von dem Service
-  //    ich ordne meine Zutaten hier einfach dem zu,was der Einkaufslistenservice zurückgibt
   ngOnInit(): void {
     this.ingredients = this.slService.getIngredients();
-    this.slService.ingredientsChanged
+    this.igChanceSub = this.slService.ingredientsChanged
     .subscribe(
       (ingredients: Ingredient[]) => {
         this.ingredients = ingredients;
       }
     );
+  }
+
+  ngOnDestroy(){
+    this.igChanceSub .unsubscribe();
   }
 
 }
