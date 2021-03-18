@@ -11,20 +11,25 @@ import { ShoppingListService } from './shopping-list.service';
 export class ShoppingListComponent implements OnInit, OnDestroy {
   ingredients: Ingredient[];
   constructor(private slService: ShoppingListService) { }
-  private igChanceSub: Subscription;
+  private subscription: Subscription;
 
   ngOnInit(): void {
     this.ingredients = this.slService.getIngredients();
-    this.igChanceSub = this.slService.ingredientsChanged
+    this.subscription = this.slService.ingredientsChanged
     .subscribe(
       (ingredients: Ingredient[]) => {
         this.ingredients = ingredients;
       }
     );
   }
+  // i can listen to it in some other places, shopping edit component! data transform: shopping-list.service
+  onEditItme(index: number){
+    this.slService.startedEditing.next(index);
+  }
+
 
   ngOnDestroy(){
-    this.igChanceSub .unsubscribe();
+    this.subscription .unsubscribe();
   }
 
 }

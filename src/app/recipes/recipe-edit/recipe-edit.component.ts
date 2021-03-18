@@ -16,6 +16,9 @@ export class RecipeEditComponent implements OnInit {
   constructor(private route:ActivatedRoute) { }
 // != null .... the id will only be not undefined if i am in edit mode because than an id will be present
 // ckeck in which mode i am
+
+// falsch = string ist nicht null; string ist nicht null ergibt true. also false = true und deswegen sind wir im new mode und
+// nicht im edit mode
   ngOnInit(): void {
     this.route.params
     .subscribe(

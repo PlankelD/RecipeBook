@@ -3,6 +3,7 @@ import { Ingredient } from "../shared/ingredient.model";
 import { ShoppingListService } from "../shopping-list/shopping-list.service";
 import { Recipe } from "./recipe.model";
 
+//maybe only  @Injectable()
 @Injectable({
   providedIn: 'root'
 })
@@ -28,11 +29,14 @@ export class RecipeService {
   ];
 
   constructor(private slService: ShoppingListService){}
-
+  // acces from outise. return the direct refernce to this array
+  // change in this array, will change it on the array in this service
+  // slice() without arguments return a new array wich is an exact copy of the one in this service file
   getRecipes(){
     return this.recipes.slice();
   }
 
+  // loading a single recipe by id. The detail component listenig
   getRecipe(index: number ){
     return this.recipes[index];
   }

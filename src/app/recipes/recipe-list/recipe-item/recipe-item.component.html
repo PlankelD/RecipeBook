@@ -1,3 +1,33 @@
+
+<!-- [routerLink]="[index]"
+  The other speciality about using brackets specifically for routerLink is that you can pass dynamic parameters
+   to the link you're navigating to:  when i click: recipe/0 or recipe/1
+
+
+   [routerLink]="link"                  //when u pass URL value from COMPONENT file
+   [routerLink]="['link','parameter']" //when you want to pass some parameters along with route
+
+   routerLink="link"                  //when you directly pass some URL
+   [routerLink]="['link']"              //when you directly pass some URL
+
+
+Assume that you have
+
+const appRoutes: Routes = [
+  {path: 'recipes', component: RecipesComponent }
+];
+
+<a routerLink ="recipes">Recipes</a>
+It means that clicking Recipes hyperlink will jump to http://localhost:4200/recipes
+
+Assume that the parameter is 1
+
+<a [routerLink] = "["/recipes", parameter]"></a>
+It means that passing dynamic parameter, 1 to the link, then you navigate to http://localhost:4200/recipes/1
+
+
+
+  -->
 <a
    style="cursor: pointer;"
    [routerLink]="[index]"

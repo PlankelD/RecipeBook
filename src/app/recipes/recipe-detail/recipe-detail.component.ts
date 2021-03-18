@@ -13,7 +13,8 @@ export class RecipeDetailComponent implements OnInit {
   id: number;
 
   constructor(private recipeService: RecipeService,private route: ActivatedRoute ,private router: Router) {}
-
+  // fetching the id and store it and fetching the recipe. Whenerver the id changes, then i will call getRecipe and pass my
+  // ID as an argument
   ngOnInit(): void {
     this.route.params
     .subscribe(
