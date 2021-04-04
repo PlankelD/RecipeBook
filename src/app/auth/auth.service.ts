@@ -1,8 +1,10 @@
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { catchError, tap } from "rxjs/operators";
-import { Subject, throwError} from 'rxjs';
+import { BehaviorSubject, throwError} from 'rxjs';
 import { User } from "./user.model";
+import { Router } from "@angular/router";
+
 
 export interface AuthResponseData {
   kind: string;
@@ -16,10 +18,12 @@ export interface AuthResponseData {
 
 @Injectable({providedIn: 'root'})
 export class AuthService {
+  //currently active user - data storage
+  user = new BehaviorSubject<User>(null);
+  private tokenExpirationTimer: any;
 
-  user = new Subject<User>()
 
-  constructor(private http: HttpClient){}
+  constructor(private http: HttpClient, private router: Router){}
 
   signup(email: string, password: string) {
     return this.http.post<AuthResponseData>('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyDQoOpKPwZaJ-LB85rqLPNLmBqqNmFkyv0',
@@ -42,6 +46,27 @@ export class AuthService {
     );
 
   }
+  // pass a reference,the parameter will automatically be passed under the hood
+  // login(email: string, password:string){
+  //   return this.http.post<AuthResponseData>('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDQoOpKPwZaJ-LB85rqLPNLmBqqNmFkyv0',
+  //     {
+  //       email: email,
+  //       password: password,
+  //       returnSecureToken: true
+  //     }
+  //   )
+  //   .pipe(
+  //     catchError(this.handleError),
+  //     tap( resData => {
+  //       this.handleAuthentication(
+  //         resData.email,
+  //         resData.localId,
+  //         resData.idToken,
+  //         +resData.expiresIn
+  //       );
+  //     })
+  //   );
+  // }
 
   login(email: string, password:string){
     return this.http.post<AuthResponseData>('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDQoOpKPwZaJ-LB85rqLPNLmBqqNmFkyv0',
@@ -52,7 +77,7 @@ export class AuthService {
       }
     )
     .pipe(
-      catchError(this.handleError),
+      catchError(error => this.handleError(error)),
       tap( resData => {
         this.handleAuthentication(
           resData.email,
@@ -62,6 +87,50 @@ export class AuthService {
         );
       })
     );
+  }
+
+  autoLogin(){
+    // fetching from the local storage
+    // snapshot
+    const userData: {
+      email: string;
+      id: string;
+      _token: string;
+      _tokenExpirationDate: string;
+    } = JSON.parse(localStorage.getItem('userData'));
+    if(!userData){
+      return;
+    }
+    // i create a new user i can pass userData
+    const loadedUser = new User(
+      userData.email,
+      userData.id,
+      userData._token,
+      new Date(userData._tokenExpirationDate)
+    );
+      // validet token überprüfung in usermodel with _token get
+    if (loadedUser.token) {
+      this.user.next(loadedUser);
+      const expirationDuration = new Date(userData._tokenExpirationDate).getTime() - new Date().getTime();
+      this.autoLogout(expirationDuration);
+    }
+
+  }
+
+  logout(){
+    this.user.next(null);
+    this.router.navigate(['/auth']);
+    localStorage.removeItem('userData')
+    if(this.tokenExpirationTimer){
+      clearTimeout(this.tokenExpirationTimer);
+    }
+    this.tokenExpirationTimer = null;
+  }
+
+  autoLogout(expirationDuration:number){
+    this.tokenExpirationTimer = setTimeout(() => {
+      this.logout();
+    },expirationDuration )
   }
 
   private handleAuthentication(email: string, userId: string, token:string, expiresIn: number){
@@ -75,6 +144,8 @@ export class AuthService {
       expirationDate
     );
     this.user.next(user);
+    this.autoLogout(expiresIn *1000);
+    localStorage.setItem('userData', JSON.stringify(user))
   }
 
   private handleError(errorRes: HttpErrorResponse){
@@ -91,6 +162,9 @@ export class AuthService {
         break;
       case 'INVALID_PASSWORD':
         errorMessage = 'This password is not correct';
+        break;
+      case 'USER_DISABLED ':
+        errorMessage = ' The user account has been disabled by an administrator';
         break;
     }
     return throwError(errorMessage)

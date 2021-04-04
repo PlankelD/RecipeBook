@@ -1,29 +1,16 @@
-//1. In this case Angular itself subscribes automatically. We don't subscribe in code.
-
-//2. You will use map() for transforming the data passed with an event.
-// You will use tap() if you want to perform a side effect - e.g. a console.log, a navigation) when an event is detected.
-
-
 
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { RecipeService } from '../recipes/recipe.service';
 import { Recipe } from '../recipes/recipe.model';
-import { map, tap } from 'rxjs/operators';
+import { exhaustMap, map, take, tap } from 'rxjs/operators';
+import { AuthService } from '../auth/auth.service';
 
-// inject recipe-service into our data storage service, that we could directly get our currently loaded recipes from that
-// recipe-service.
-// 2) http: If we have POSTed at least once, we don't get an array back from firebase, like we get it if we have only
-// used PUT. Instead we get an object where the properties are auto generated ids, and the values are the POSTed items.
-//3) Url: recipes.json is onnly firebase real-time database works
-// 4) angular will know what we are put: recipes
-// 5) subscribe directly in the service because i have no interest in the response, in my component and i will get back a response
-//    here amd we can log tho have look at
-//6) that the store recipe method is getting called and that will happend inside the header component
+
 @Injectable({providedIn: 'root'})
 export class DataStorageService {
 
-  constructor(private http: HttpClient, private recipeService: RecipeService){}
+  constructor(private http: HttpClient, private recipeService: RecipeService,private authService: AuthService){}
 
   storeRecipes() {
     const recipes = this.recipeService.getRecipes();
@@ -37,28 +24,37 @@ export class DataStorageService {
 
     });
   }
-// wenn man kein Ingredients hochladet. gibt es keine Ingredients. Ich will immer welche. Selbst wenn sie leer sind um bugs zu
-// vermeiden. ich nütze die pipe-method und den map operator der es mir erlaubt diesen Daten zu transformieren
-// dies erste map ist ein rxjs operator aufgerufen als Funktion und der der zweite ist ein Javascript Array-Method
-// die map allows us to transform the elements in an array
+  // take... 1 value from the observable and after automatically unsubscribe. this manage the subsription for me, gives
+  // me the latest user and unsubscribes
+
+  //exhaustMap waits for the first observabel, for the user observable to complete which will happen after we took the
+  // latest user.
+
+  // innen benützen wir das user observable, schneiden den user durch take nur einmal raus, unsubcriben es zu diesem
+  // observable and ersetzen es automatisch mit dem neuen observable
+
+  // wir haben den user jetzt, jetzt können wir das token herauziehen/extrahieren entnehemn,
+  // bei firebase mit Params statt header. als 2 Argument.Wir benützen den query parameter in der url. also dass
+  // token wird angehängt
   fetchRecipes(){
-    return this.http
-    .get<Recipe[]>(
-      'https://ng-course-recipe-book-db3c0-default-rtdb.firebaseio.com/recipes.json'
-    )
-    .pipe(
-      map(recipes =>{
-        return recipes.map( recipe => {
-          return {
-            ... recipe,
-            ingredients: recipe.ingredients ? recipe.ingredients: []
-          };
-        });
-      }),
-      tap( recipes => {
-        this.recipeService.setRecipes(recipes)
-      })
-    )
+
+      return this.http.get<Recipe[]>(
+        'https://ng-course-recipe-book-db3c0-default-rtdb.firebaseio.com/recipes.json',
+
+      )
+      .pipe(
+    map(recipes =>{
+      return recipes.map( recipe => {
+        return {
+          ... recipe,
+          ingredients: recipe.ingredients ? recipe.ingredients: []
+        };
+      });
+    }),
+    tap( recipes => {
+      this.recipeService.setRecipes(recipes)
+    })
+  );
 
   }
 }

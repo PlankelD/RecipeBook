@@ -1,3 +1,5 @@
+// private because the token should not be retrievable
+// get automatische überprügunf der gültigkeit dieses tokens
 export class User {
   constructor(
     public email: string,
